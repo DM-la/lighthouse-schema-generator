@@ -1,0 +1,37 @@
+{
+    "name": "dm/lighthouse-schema-generator",
+    "keywords": ["laravel"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Dima Yefremov",
+            "email": "efremov2293@gamil.com"
+        },
+        {
+            "name": "Max Shcherbyna",
+            "email": "ffwmaksshcherbyna@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">= 7.2",
+        "nuwave/lighthouse": "^5.12"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^6.0"
+    },
+    "autoload": {
+        "psr-4": { "DM\\LighthouseSchemaGenerator\\": "src/" }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "DM\\LighthouseSchemaGenerator\\Tests\\": "tests"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "DM\\LighthouseSchemaGenerator\\SchemaGeneratorServiceProvider"
+            ]
+        }
+    }
+}
