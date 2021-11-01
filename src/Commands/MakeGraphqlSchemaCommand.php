@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Symfony\Component\Finder\SplFileInfo;
 use ReflectionClass;
+use ReflectionObject;
 use ReflectionMethod;
 use Illuminate\Support\Collection;
 
@@ -43,40 +44,29 @@ class MakeGraphqlSchemaCommand extends Command
     public function handle()
     {
         $this->getModels()->each(function ($model) {
-            /** @var Model $model */
-            $model = new $model;
-            $data = '';
-            $reflector = (new ReflectionClass(get_class($model)));
-
+            $schemaData = $this->generateSchema($model);
             $graphqlSchemaFolder = pathinfo(config('lighthouse.schema.register'), PATHINFO_DIRNAME);
-            $schemaPath = $graphqlSchemaFolder . '/' . strtolower($reflector->getShortName() . '.graphql');
-            $data .= "type {$reflector->getShortName()} {\n";
-            $this->parseColumns($model, $data);
+            $schemaFileName = strtolower(class_basename($model) . '.graphql');
+            $schemaPath = $graphqlSchemaFolder . '/' . $schemaFileName;
+            $schema = \Safe\file_put_contents($schemaPath, $schemaData);
 
-            foreach ($reflector->getMethods(ReflectionMethod::IS_PUBLIC) as $reflectionMethod) {
-                $methodName = $reflectionMethod->getName();
-                if (
-                    $reflectionMethod->class !== get_class($model)
-                    || ! empty($reflectionMethod->getParameters())
-                    || $methodName == __FUNCTION__
-                ) {
-                    continue;
-                }
-
-                $relation = $reflectionMethod->invoke($model);
-
-                if ($relation instanceof Relation) {
-                    $relationName = (new ReflectionClass($relation))->getShortName();
-                    $relationClass = (new ReflectionClass($relation->getRelated()))->getShortName();
-                    if ($relationName == 'HasOne' || $relationName == 'BelongsTo' || $relationName == 'MorphTo') {
-                        $data .= "    {$methodName}: {$relationClass} @{$relationName}\n";
-                    }
-                }
-            }
-            $data .= '}';
-
-            $schema = \Safe\file_put_contents($schemaPath, $data);
+            $schema ? $this->info("{$schemaFileName} file was generated") : $this->error("Generating `{$schemaFileName}` file was failed");
         });
+    }
+
+    /**
+     * @param Model $model
+     * @return string $data
+     */
+    private function generateSchema($model): string
+    {
+        $data = '';
+        $reflector = new ReflectionObject($model);
+        $data .= "type {$reflector->getShortName()} {\n";
+        $this->parseColumns($model, $data);
+        $data .= '}';
+
+        return $data;
     }
 
     /**
@@ -102,27 +92,30 @@ class MakeGraphqlSchemaCommand extends Command
             }
 
             return $valid;
+        })->map(function (string $modelNamespace) {
+            return (new $modelNamespace);
         });
 
         return $models;
     }
 
     /**
-     * @param $model
+     * @param Model $model
      * @param string $data
      */
     private function parseColumns($model, string &$data): void
     {
         $table = $model->getTable();
         $columns = Schema::getColumnListing($table);
+        $connection = $model->getConnection();
         $types = $this->getTypes();
 
         foreach ($columns as $column) {
-            /** @var \Doctrine\DBAL\Schema\Column $columnData */
-            $columnData = Schema::getConnection()->getDoctrineColumn($table, $column);
+            $columnData = $connection->getDoctrineColumn($table, $column);
             $data .= "    {$column}: ";
 
             $columnType = Schema::getColumnType($table, $column);
+
             switch (true) {
                 case in_array($columnType, $types['intTypes']) && $columnData->getAutoincrement():
                     $data .= 'ID';
@@ -217,6 +210,7 @@ class MakeGraphqlSchemaCommand extends Command
             'stringTypes',
             'jsonTypes',
             'timeTypes',
+            'floatTypes'
         );
     }
 }
