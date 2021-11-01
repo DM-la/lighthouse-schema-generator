@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace DM\LighthouseSchemaGenerator\Commands;
 
-use Cloudinary\Transformation\Expression\StringRelationalOperatorBuilderTrait;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\File;
@@ -45,46 +45,37 @@ class MakeGraphqlSchemaCommand extends Command
         $this->getModels()->each(function ($model) {
             /** @var Model $model */
             $model = new $model;
-            $relations = [];
             $data = '';
             $reflector = (new ReflectionClass(get_class($model)));
 
             $graphqlSchemaFolder = pathinfo(config('lighthouse.schema.register'), PATHINFO_DIRNAME);
             $schemaPath = $graphqlSchemaFolder . '/' . strtolower($reflector->getShortName() . '.graphql');
             $data .= "type {$reflector->getShortName()} {\n";
-
-//            $columns = Schema::getColumnListing($model->getTable());
-//            /** @var \Illuminate\Database\Schema\Builder $schemaBuilder */
-//            $schemaBuilder = \DB::getSchemaBuilder();
-//            dd(gettype($description[0]));
-            $description = \DB::select("describe {$model->getTable()}");
-            foreach($description as $value) {
-//                dd($schemaBuilder->getColumnType($model->getTable(), $value->Field));
-                $data .= "    {$value->Field}: ";
-                if ($value->Key == 'PRI' && $value->Extra == 'auto_increment') {
-                    $data .= "ID!";
-                } else {
-                    if($value->Type == 'timestamp') $data .= "DateTime";
-                    if($value->Type == 'varchar(255)') $data .= "String";
-                    if($value->Null == 'NO') $data .= "!";
-                }
-                $data .= "\n";
-            }
+            $this->parseColumns($model, $data);
 
             foreach ($reflector->getMethods(ReflectionMethod::IS_PUBLIC) as $reflectionMethod) {
-                $returnType = $reflectionMethod->getReturnType();
+                $methodName = $reflectionMethod->getName();
+                if (
+                    $reflectionMethod->class !== get_class($model)
+                    || ! empty($reflectionMethod->getParameters())
+                    || $methodName == __FUNCTION__
+                ) {
+                    continue;
+                }
 
-                if ($returnType) {
-                    if (in_array(class_basename($returnType->getName()), ['HasOne', 'HasMany', 'BelongsTo', 'BelongsToMany', 'MorphToMany', 'MorphTo'])) {
-                        $relations[] = $reflectionMethod;
+                $relation = $reflectionMethod->invoke($model);
+
+                if ($relation instanceof Relation) {
+                    $relationName = (new ReflectionClass($relation))->getShortName();
+                    $relationClass = (new ReflectionClass($relation->getRelated()))->getShortName();
+                    if ($relationName == 'HasOne' || $relationName == 'BelongsTo' || $relationName == 'MorphTo') {
+                        $data .= "    {$methodName}: {$relationClass} @{$relationName}\n";
                     }
                 }
             }
-
             $data .= '}';
 
             $schema = \Safe\file_put_contents($schemaPath, $data);
-            dd($relations);
         });
     }
 
@@ -114,5 +105,118 @@ class MakeGraphqlSchemaCommand extends Command
         });
 
         return $models;
+    }
+
+    /**
+     * @param $model
+     * @param string $data
+     */
+    private function parseColumns($model, string &$data): void
+    {
+        $table = $model->getTable();
+        $columns = Schema::getColumnListing($table);
+        $types = $this->getTypes();
+
+        foreach ($columns as $column) {
+            /** @var \Doctrine\DBAL\Schema\Column $columnData */
+            $columnData = Schema::getConnection()->getDoctrineColumn($table, $column);
+            $data .= "    {$column}: ";
+
+            $columnType = Schema::getColumnType($table, $column);
+            switch (true) {
+                case in_array($columnType, $types['intTypes']) && $columnData->getAutoincrement():
+                    $data .= 'ID';
+                    break;
+                case in_array($columnType, $types['intTypes']):
+                    $data .= "Int";
+                    break;
+                case in_array($columnType, $types['stringTypes']):
+                    $data .= "String";
+                    break;
+                case $columnType === 'datetime':
+                case in_array($columnType, $types['timeTypes']):
+                    $data .= "DateTime";
+                    break;
+                case $columnType === 'date':
+                    $data .= "Date";
+                    break;
+                case $columnType === 'datetimetz':
+                    $data .= "DateTimeTz";
+                    break;
+                case in_array($columnType, $types['booleanTypes']):
+                    $data .= "Boolean";
+                    break;
+                case in_array($columnType, $types['floatTypes']):
+                    $data .= "Float";
+                    break;
+                case in_array($columnType, $types['jsonTypes']):
+                    $data .= "Json";
+                    break;
+            }
+
+            if ($columnData->getNotnull()) $data .= "!";
+
+            $data .= "\n";
+        }
+    }
+
+    private function getTypes(): array
+    {
+        $intTypes = [
+            'smallint',
+            'mediumint',
+            'int',
+            'integer',
+            'bigint',
+            'year',
+            'binary'
+        ];
+
+        $booleanTypes = [
+            'boolean',
+            'tinyint',
+        ];
+
+        $stringTypes = [
+            'tinytext',
+            'text',
+            'mediumtext',
+            'tinyblob',
+            'blob',
+            'mediumblob',
+            'json',
+            'string',
+            'ascii_string',
+            'array',
+            'object'
+        ];
+
+        $floatTypes = [
+            'float',
+            'decimal'
+        ];
+
+        $jsonTypes = [
+            'json',
+            'object'
+        ];
+
+        $timeTypes = [
+            'date_immutable',
+            'dateinterval',
+            'datetime_immutable',
+            'datetimetz_immutable',
+            'time',
+            'time_immutable',
+            'timestamp'
+        ];
+
+        return compact(
+            'intTypes',
+            'booleanTypes',
+            'stringTypes',
+            'jsonTypes',
+            'timeTypes',
+        );
     }
 }
