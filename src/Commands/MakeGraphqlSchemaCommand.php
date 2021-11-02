@@ -62,8 +62,37 @@ class MakeGraphqlSchemaCommand extends Command
     {
         $data = '';
         $reflector = new ReflectionObject($model);
+
         $data .= "type {$reflector->getShortName()} {\n";
         $this->parseColumns($model, $data);
+
+        $publicMethods = $reflector->getMethods(ReflectionMethod::IS_PUBLIC);
+        foreach ($publicMethods as $reflectionMethod) {
+            $methodName = $reflectionMethod->getName();
+            $returnType = $reflectionMethod->getReturnType();
+            if ($returnType && ! $returnType->isBuiltin()) {
+                $relation = new ReflectionClass($returnType->getName());
+                try {
+                    if (
+                        $relation->isSubclassOf(Relation::class)
+                        && $reflectionMethod->getNumberOfParameters() == 0
+                        && $reflectionMethod->hasReturnType()
+                        && $reflectionMethod->invoke($model)
+                    ) {
+                        $relatedClass = $reflectionMethod->invoke($model)->getRelated();
+                        $relatedClassName = class_basename($relatedClass);
+
+                        if ($relation->getShortName() == 'BelongsTo') {
+                            $data .= "    {$methodName}: $relatedClassName @{$relation->getShortName()}\n";
+                        }
+                    }
+                } catch (\Exception $exception) {
+                    $this->error($exception->getMessage());
+                    continue;
+                }
+            }
+        }
+
         $data .= '}';
 
         return $data;
