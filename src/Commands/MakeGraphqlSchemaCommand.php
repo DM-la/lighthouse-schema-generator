@@ -1,19 +1,20 @@
 <?php
-
 declare(strict_types=1);
 
 namespace DM\LighthouseSchemaGenerator\Commands;
 
-use Illuminate\Database\Eloquent\Relations\Relation;
+use ReflectionClass;
+use ReflectionMethod;
+use ReflectionObject;
+use ReflectionException;
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Eloquent\Model;
 use Safe\Exceptions\FilesystemException;
 use Symfony\Component\Finder\SplFileInfo;
-use ReflectionClass;
-use ReflectionObject;
-use ReflectionMethod;
+use Illuminate\Database\Eloquent\Relations\Relation;
+
 use Illuminate\Support\Collection;
 
 class MakeGraphqlSchemaCommand extends Command
@@ -192,6 +193,7 @@ class MakeGraphqlSchemaCommand extends Command
     /**
      * @param string|object $objectOrClass
      * @return ReflectionClass
+     * @throws ReflectionException
      */
     private function reflectionClass($objectOrClass): ReflectionClass
     {
