@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use Safe\Exceptions\FilesystemException;
 use Symfony\Component\Finder\SplFileInfo;
 use ReflectionClass;
 use ReflectionObject;
@@ -44,11 +45,17 @@ class MakeGraphqlSchemaCommand extends Command
     public function handle()
     {
         $this->getModels()->each(function ($model) {
-            $schemaData = $this->generateSchema($model);
+            $content = $this->generateSchema($model);
             $graphqlSchemaFolder = pathinfo(config('lighthouse.schema.register'), PATHINFO_DIRNAME);
-            $schemaFileName = strtolower(class_basename($model) . '.graphql');
+            $schemaFileName = $this->generateFileName(class_basename($model));
             $schemaPath = $graphqlSchemaFolder . '/' . $schemaFileName;
-            $schema = \Safe\file_put_contents($schemaPath, $schemaData);
+
+            try {
+                $schema = $this->filePutContents($schemaPath, $content);
+            } catch (FilesystemException $exception) {
+                $this->error($exception->getMessage());
+                return true;
+            }
 
             $schema ? $this->info("{$schemaFileName} file was generated") : $this->error("Generating `{$schemaFileName}` file was failed");
         });
@@ -61,7 +68,7 @@ class MakeGraphqlSchemaCommand extends Command
     private function generateSchema($model): string
     {
         $data = '';
-        $reflector = new ReflectionObject($model);
+        $reflector = $this->reflectionObject($model);
 
         $data .= "type {$reflector->getShortName()} {\n";
         $this->parseColumns($model, $data);
@@ -71,19 +78,19 @@ class MakeGraphqlSchemaCommand extends Command
             $methodName = $reflectionMethod->getName();
             $returnType = $reflectionMethod->getReturnType();
             if ($returnType && ! $returnType->isBuiltin()) {
-                $relation = new ReflectionClass($returnType->getName());
                 try {
+                    $relation = $this->reflectionClass($returnType->getName());
                     if (
-                        $relation->isSubclassOf(Relation::class)
+                        $reflectionMethod->hasReturnType()
                         && $reflectionMethod->getNumberOfParameters() == 0
-                        && $reflectionMethod->hasReturnType()
-                        && $reflectionMethod->invoke($model)
+                        && $relation->isSubclassOf(Relation::class)
                     ) {
                         $relatedClass = $reflectionMethod->invoke($model)->getRelated();
                         $relatedClassName = class_basename($relatedClass);
 
-                        if ($relation->getShortName() == 'BelongsTo') {
-                            $data .= "    {$methodName}: $relatedClassName @{$relation->getShortName()}\n";
+                        $relationName = $relation->getShortName();
+                        if ($relationName == 'BelongsTo') {
+                            $data .= "    {$methodName}: $relatedClassName @{$relationName}\n";
                         }
                     }
                 } catch (\Exception $exception) {
@@ -103,7 +110,7 @@ class MakeGraphqlSchemaCommand extends Command
      */
     private function getModels(): Collection
     {
-        $models = collect(File::allFiles(app_path()))->map(function (SplFileInfo $file) {
+        $models = collect($this->getAllFiles(app_path()))->map(function (SplFileInfo $file) {
             $path = $file->getRelativePathName();
             $class = sprintf(
                 '\%s%s',
@@ -116,7 +123,7 @@ class MakeGraphqlSchemaCommand extends Command
             $valid = false;
 
             if (class_exists($class)) {
-                $reflection = new ReflectionClass($class);
+                $reflection = $this->reflectionClass($class);
                 $valid = $reflection->isSubclassOf(Model::class) && (! $reflection->isAbstract());
             }
 
@@ -125,7 +132,7 @@ class MakeGraphqlSchemaCommand extends Command
             return (new $modelNamespace);
         });
 
-        return $models;
+        return $models->values();
     }
 
     /**
@@ -182,6 +189,53 @@ class MakeGraphqlSchemaCommand extends Command
         }
     }
 
+    /**
+     * @param string|object $objectOrClass
+     * @return ReflectionClass
+     */
+    private function reflectionClass($objectOrClass): ReflectionClass
+    {
+        return (new ReflectionClass($objectOrClass));
+    }
+
+    /**
+     * @param object $object
+     * @return ReflectionObject
+     */
+    private function reflectionObject(object $object): ReflectionObject
+    {
+        return (new ReflectionObject($object));
+    }
+
+    /**
+     * @param string $name
+     * @return string
+     */
+    private function generateFileName(string $name): string
+    {
+        return strtolower( "{$name}.graphql");
+    }
+
+    /**
+     * @param string $path
+     * @return SplFileInfo[]
+     */
+    private function getAllFiles(string $path)
+    {
+        return File::allFiles($path);
+    }
+
+    /**
+     * @param string $path
+     * @param string $content
+     * @return int
+     * @throws FilesystemException
+     */
+    private function filePutContents(string $path, string $content): int
+    {
+        return \Safe\file_put_contents($path, $content);
+    }
+
     private function getTypes(): array
     {
         $intTypes = [
@@ -210,7 +264,6 @@ class MakeGraphqlSchemaCommand extends Command
             'string',
             'ascii_string',
             'array',
-            'object'
         ];
 
         $floatTypes = [
