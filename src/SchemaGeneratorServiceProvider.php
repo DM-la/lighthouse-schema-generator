@@ -16,7 +16,7 @@ class SchemaGeneratorServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->registerDoctrineTypeMapping();
     }
 
     /**
@@ -32,4 +32,10 @@ class SchemaGeneratorServiceProvider extends ServiceProvider
             ]);
         }
     }
+
+    private function registerDoctrineTypeMapping(): void
+    {
+        \DB::getDoctrineSchemaManager()->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
+    }
+
 }
