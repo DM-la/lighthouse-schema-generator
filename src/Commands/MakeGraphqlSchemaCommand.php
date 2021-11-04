@@ -64,7 +64,7 @@ class MakeGraphqlSchemaCommand extends Command
             $models->each(function ($model) {
                 $content = $this->generateSchema($model);
                 $graphqlSchemaFolder = pathinfo(config('lighthouse.schema.register'), PATHINFO_DIRNAME);
-                $schemaFileName = $this->generateFileName(class_basename($model));
+                $schemaFileName = $this->file->generateFileName(class_basename($model));
                 $schemaPath = $graphqlSchemaFolder . '/' . $schemaFileName;
 
 //                if ($this->fileOrDirectoryExists($schemaPath)) {
@@ -206,15 +206,6 @@ class MakeGraphqlSchemaCommand extends Command
 
             $data .= "\n";
         }
-    }
-
-    /**
-     * @param string $name
-     * @return string
-     */
-    private function generateFileName(string $name): string
-    {
-        return strtolower( "{$name}.graphql");
     }
 
     /**

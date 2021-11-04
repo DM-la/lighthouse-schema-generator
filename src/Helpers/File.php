@@ -29,6 +29,15 @@ class File
     }
 
     /**
+     * @param string $name
+     * @return string
+     */
+    public function generateFileName(string $name): string
+    {
+        return strtolower( "{$name}.graphql");
+    }
+
+    /**
      * @param string $path
      * @param string $content
      * @return int
