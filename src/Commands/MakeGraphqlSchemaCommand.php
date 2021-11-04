@@ -67,9 +67,6 @@ class MakeGraphqlSchemaCommand extends Command
                 $schemaFileName = $this->file->generateFileName(class_basename($model));
                 $schemaPath = $graphqlSchemaFolder . '/' . $schemaFileName;
 
-//                if ($this->fileOrDirectoryExists($schemaPath)) {
-//                }
-
                 try {
                     $schema = $this->file->filePutContents($schemaPath, $content);
                 } catch (FilesystemException $exception) {
