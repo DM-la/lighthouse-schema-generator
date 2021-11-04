@@ -3,16 +3,15 @@ declare(strict_types=1);
 
 namespace DM\LighthouseSchemaGenerator\Commands;
 
-use ReflectionClass;
+use Exception;
 use ReflectionMethod;
-use ReflectionObject;
-use ReflectionException;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Safe\Exceptions\FilesystemException;
 use Symfony\Component\Finder\SplFileInfo;
+use DM\LighthouseSchemaGenerator\Helpers\File;
+use DM\LighthouseSchemaGenerator\Helpers\Reflection;
 use Illuminate\Database\Eloquent\Relations\Relation;
 
 use Illuminate\Support\Collection;
@@ -24,7 +23,9 @@ class MakeGraphqlSchemaCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'make:graphql-schema';
+    protected $signature = 'make:graphql-schema
+                            {--models-path= : Path for models folder, relative to app path}
+                            {--f|force : Rewrite schemes}';
 
     /**
      * The console command description.
@@ -33,43 +34,64 @@ class MakeGraphqlSchemaCommand extends Command
      */
     protected $description = 'Lighthouse schema generator';
 
+    /** @var File */
+    protected $file;
+
+    /** @var Reflection */
+    protected $reflection;
+
     /**
      * Create a new command instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(File $file, Reflection $reflection)
     {
         parent::__construct();
+
+        $this->file = $file;
+        $this->reflection = $reflection;
     }
 
     public function handle()
     {
-        $this->getModels()->each(function ($model) {
-            $content = $this->generateSchema($model);
-            $graphqlSchemaFolder = pathinfo(config('lighthouse.schema.register'), PATHINFO_DIRNAME);
-            $schemaFileName = $this->generateFileName(class_basename($model));
-            $schemaPath = $graphqlSchemaFolder . '/' . $schemaFileName;
+        $path = $this->option('models-path') ?: '';
+        $path = $this->file->exists(app_path($path)) ? $path : false;
 
-            try {
-                $schema = $this->filePutContents($schemaPath, $content);
-            } catch (FilesystemException $exception) {
-                $this->error($exception->getMessage());
-                return true;
-            }
+        if ($path !== false) {
+            $models = $this->getModels($path);
 
-            $schema ? $this->info("{$schemaFileName} file was generated") : $this->error("Generating `{$schemaFileName}` file was failed");
-        });
+            $models->each(function ($model) {
+                $content = $this->generateSchema($model);
+                $graphqlSchemaFolder = pathinfo(config('lighthouse.schema.register'), PATHINFO_DIRNAME);
+                $schemaFileName = $this->generateFileName(class_basename($model));
+                $schemaPath = $graphqlSchemaFolder . '/' . $schemaFileName;
+
+//                if ($this->fileOrDirectoryExists($schemaPath)) {
+//                }
+
+                try {
+                    $schema = $this->file->filePutContents($schemaPath, $content);
+                } catch (FilesystemException $exception) {
+                    $this->error($exception->getMessage());
+                    return true;
+                }
+
+                $schema ? $this->info("{$schemaFileName} file was generated") : $this->error("Generating `{$schemaFileName}` file was failed");
+            });
+        } else {
+            $this->error('Directory does not exist!');
+        }
     }
 
     /**
-     * @param Model $model
+     * @param Model|object $model
      * @return string $data
      */
-    private function generateSchema($model): string
+    private function generateSchema(object $model): string
     {
         $data = '';
-        $reflector = $this->reflectionObject($model);
+        $reflector = $this->reflection->reflectionObject($model);
 
         $data .= "type {$reflector->getShortName()} {\n";
         $this->parseColumns($model, $data);
@@ -80,7 +102,7 @@ class MakeGraphqlSchemaCommand extends Command
             $returnType = $reflectionMethod->getReturnType();
             if ($returnType && ! $returnType->isBuiltin()) {
                 try {
-                    $relation = $this->reflectionClass($returnType->getName());
+                    $relation = $this->reflection->reflectionClass($returnType->getName());
                     if (
                         $reflectionMethod->hasReturnType()
                         && $reflectionMethod->getNumberOfParameters() == 0
@@ -94,7 +116,7 @@ class MakeGraphqlSchemaCommand extends Command
                             $data .= "    {$methodName}: $relatedClassName @{$relationName}\n";
                         }
                     }
-                } catch (\Exception $exception) {
+                } catch (Exception $exception) {
                     $this->error($exception->getMessage());
                     continue;
                 }
@@ -107,24 +129,20 @@ class MakeGraphqlSchemaCommand extends Command
     }
 
     /**
+     * @param string $path models path
      * @return Collection
      */
-    private function getModels(): Collection
+    private function getModels(string $path = ''): Collection
     {
-        $models = collect($this->getAllFiles(app_path()))->map(function (SplFileInfo $file) {
-            $path = $file->getRelativePathName();
-            $class = sprintf(
-                '\%s%s',
-                app()->getNamespace(),
-                strtr(substr($path, 0, strrpos($path, '.')), '/', '\\')
-            );
+        $models = collect($this->file->getAllFiles($path))->map(function (SplFileInfo $file) use ($path) {
+            $path = $path ?  $path . '/' . $file->getRelativePathName(): $file->getRelativePathName();
 
-            return $class;
+            return $this->getNamespace($path);
         })->filter(function (string $class) {
             $valid = false;
 
             if (class_exists($class)) {
-                $reflection = $this->reflectionClass($class);
+                $reflection = $this->reflection->reflectionClass($class);
                 $valid = $reflection->isSubclassOf(Model::class) && (! $reflection->isAbstract());
             }
 
@@ -143,7 +161,7 @@ class MakeGraphqlSchemaCommand extends Command
     private function parseColumns($model, string &$data): void
     {
         $table = $model->getTable();
-        $columns = Schema::getColumnListing($table);
+        $columns = $this->getColumnListing($table);
         $connection = $model->getConnection();
         $types = $this->getTypes();
 
@@ -151,7 +169,7 @@ class MakeGraphqlSchemaCommand extends Command
             $columnData = $connection->getDoctrineColumn($table, $column);
             $data .= "    {$column}: ";
 
-            $columnType = Schema::getColumnType($table, $column);
+            $columnType = $this->getColumnType($table, $column);
 
             switch (true) {
                 case in_array($columnType, $types['intTypes']) && $columnData->getAutoincrement():
@@ -191,25 +209,6 @@ class MakeGraphqlSchemaCommand extends Command
     }
 
     /**
-     * @param string|object $objectOrClass
-     * @return ReflectionClass
-     * @throws ReflectionException
-     */
-    private function reflectionClass($objectOrClass): ReflectionClass
-    {
-        return (new ReflectionClass($objectOrClass));
-    }
-
-    /**
-     * @param object $object
-     * @return ReflectionObject
-     */
-    private function reflectionObject(object $object): ReflectionObject
-    {
-        return (new ReflectionObject($object));
-    }
-
-    /**
      * @param string $name
      * @return string
      */
@@ -220,22 +219,36 @@ class MakeGraphqlSchemaCommand extends Command
 
     /**
      * @param string $path
-     * @return SplFileInfo[]
+     * @return string
      */
-    private function getAllFiles(string $path)
+    private function getNamespace(string $path): string
     {
-        return File::allFiles($path);
+        return sprintf(
+            '\%s%s',
+            app()->getNamespace(),
+            strtr(substr($path, 0, strrpos($path, '.')), '/', '\\')
+        );
     }
 
     /**
-     * @param string $path
-     * @param string $content
-     * @return int
-     * @throws FilesystemException
+     * @param  string  $table
+     * @param  string  $column
+     * @return string
      */
-    private function filePutContents(string $path, string $content): int
+    private function getColumnType(string $table, string $column): string
     {
-        return \Safe\file_put_contents($path, $content);
+        return Schema::getColumnType($table, $column);
+    }
+
+    /**
+     * Get the column listing for a given table.
+     *
+     * @param  string  $table
+     * @return array
+     */
+    public function getColumnListing(string $table): array
+    {
+        return Schema::getColumnListing($table);
     }
 
     private function getTypes(): array
