@@ -64,8 +64,6 @@ class MakeGraphqlSchemaCommand extends Command
             $force = $this->option('force');
 
             $models->each(function ($model) use ($schemaFolder, $force) {
-                $content = $this->modelParser->parse($model);
-
                 $schemaFileName = $this->fileUtils->generateFileName(class_basename($model));
                 $schemaPath = "{$schemaFolder}/{$schemaFileName}";
 
@@ -73,6 +71,8 @@ class MakeGraphqlSchemaCommand extends Command
                     $question = "The {$schemaFileName} file exists. Do you want to rewrite file?";
                     if (! $this->confirm($question)) return true;
                 }
+
+                $content = $this->modelParser->parse($model);
 
                 try {
                     $schema = $this->fileUtils->filePutContents($schemaPath, $content);
