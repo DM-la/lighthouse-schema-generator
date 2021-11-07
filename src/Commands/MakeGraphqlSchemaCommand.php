@@ -9,8 +9,6 @@ use DM\LighthouseSchemaGenerator\Helpers\Utils;
 use DM\LighthouseSchemaGenerator\Helpers\FileUtils;
 use DM\LighthouseSchemaGenerator\Helpers\ModelParser;
 
-use Illuminate\Support\Collection;
-
 class MakeGraphqlSchemaCommand extends Command
 {
     /**
@@ -60,12 +58,21 @@ class MakeGraphqlSchemaCommand extends Command
         if ($path !== false) {
             $files = $this->fileUtils->getAllFiles($path);
             $models = $this->utils->getModels($files, $path);
+            $schemaFolder = pathinfo(config('lighthouse.schema.register'), PATHINFO_DIRNAME);
 
-            $models->each(function ($model) {
+            /** @var bool $force */
+            $force = $this->option('force');
+
+            $models->each(function ($model) use ($schemaFolder, $force) {
                 $content = $this->modelParser->generateSchema($model);
-                $graphqlSchemaFolder = pathinfo(config('lighthouse.schema.register'), PATHINFO_DIRNAME);
+
                 $schemaFileName = $this->fileUtils->generateFileName(class_basename($model));
-                $schemaPath = $graphqlSchemaFolder . '/' . $schemaFileName;
+                $schemaPath = "{$schemaFolder}/{$schemaFileName}";
+
+                if (! $force && $this->fileUtils->exists($schemaPath)) {
+                    $question = "The {$schemaFileName} file is exists. Do you want to rewrite file?";
+                    if (! $this->confirm($question)) return true;
+                }
 
                 try {
                     $schema = $this->fileUtils->filePutContents($schemaPath, $content);
