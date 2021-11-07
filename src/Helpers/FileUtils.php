@@ -6,7 +6,7 @@ use Safe\Exceptions\FilesystemException;
 use Symfony\Component\Finder\SplFileInfo;
 use Illuminate\Support\Facades\File as SupportFile;
 
-class File
+class FileUtils
 {
     /**
      * Determine if a file or directory exists.

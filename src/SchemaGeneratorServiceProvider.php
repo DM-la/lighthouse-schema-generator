@@ -1,11 +1,10 @@
 <?php
-
 declare(strict_types=1);
 
 namespace DM\LighthouseSchemaGenerator;
 
-use DM\LighthouseSchemaGenerator\Commands\MakeGraphqlSchemaCommand;
 use Illuminate\Support\ServiceProvider;
+use DM\LighthouseSchemaGenerator\Commands\MakeGraphqlSchemaCommand;
 
 class SchemaGeneratorServiceProvider extends ServiceProvider
 {
