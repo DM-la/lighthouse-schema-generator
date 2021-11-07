@@ -8,9 +8,10 @@ use DM\LighthouseSchemaGenerator\Tests\TestCase;
 
 class MakeGraphqlSchemaCommandTest extends TestCase
 {
-    public function testCommand()
+    public function testCommandWithWrongModelPath(): void
     {
-        $this->artisan('make:graphql-schema')
-            ->expectsOutput('Fresh command!!!');
+        $this->artisan('make:graphql-schema', ['--models-path' => 'test/test/test'])
+            ->expectsOutput('Directory does not exist!')
+            ->assertExitCode(0);
     }
 }
