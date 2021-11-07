@@ -70,7 +70,7 @@ class MakeGraphqlSchemaCommand extends Command
                 $schemaPath = "{$schemaFolder}/{$schemaFileName}";
 
                 if (! $force && $this->fileUtils->exists($schemaPath)) {
-                    $question = "The {$schemaFileName} file is exists. Do you want to rewrite file?";
+                    $question = "The {$schemaFileName} file exists. Do you want to rewrite file?";
                     if (! $this->confirm($question)) return true;
                 }
 
