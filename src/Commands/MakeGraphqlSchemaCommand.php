@@ -28,7 +28,7 @@ class MakeGraphqlSchemaCommand extends Command
     protected $description = 'Lighthouse schema generator';
 
     /** @var ModelsUtils */
-    private $utils;
+    private $modelsUtils;
 
     /** @var FileUtils */
     private $fileUtils;
@@ -41,11 +41,11 @@ class MakeGraphqlSchemaCommand extends Command
      *
      * @return void
      */
-    public function __construct(ModelsUtils $utils, FileUtils $fileUtils, ModelParser $modelParser)
+    public function __construct(ModelsUtils $modelsUtils, FileUtils $fileUtils, ModelParser $modelParser)
     {
         parent::__construct();
 
-        $this->utils = $utils;
+        $this->modelsUtils = $modelsUtils;
         $this->fileUtils = $fileUtils;
         $this->modelParser = $modelParser;
     }
@@ -57,7 +57,7 @@ class MakeGraphqlSchemaCommand extends Command
 
         if ($path !== false) {
             $files = $this->fileUtils->getAllFiles($path);
-            $models = $this->utils->getModels($files, $path);
+            $models = $this->modelsUtils->getModels($files, $path);
             $schemaFolder = pathinfo(config('lighthouse.schema.register'), PATHINFO_DIRNAME);
 
             /** @var bool $force */
