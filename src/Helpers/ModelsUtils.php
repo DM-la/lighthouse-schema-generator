@@ -6,7 +6,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Symfony\Component\Finder\SplFileInfo;
 
-class Utils
+class ModelsUtils
 {
     /** @var Reflection  */
     private $reflection;

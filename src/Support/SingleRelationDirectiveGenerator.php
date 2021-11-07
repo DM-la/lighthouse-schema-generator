@@ -7,13 +7,13 @@ use DM\LighthouseSchemaGenerator\Support\Contracts\DirectiveGeneratorInterface;
 class SingleRelationDirectiveGenerator implements DirectiveGeneratorInterface
 {
     /**
-     * @param string $methodName
-     * @param string $relatedClassName
+     * @param string $fieldName
+     * @param string $classOrColumnName
      * @param string $relationName
      * @return string
      */
-    public static function generate(string $methodName, string $relatedClassName, string $relationName): string
+    public static function generate(string $fieldName, string $classOrColumnName, string $relationName = ''): string
     {
-        return "    {$methodName}: $relatedClassName @{$relationName}\n";
+        return "    {$fieldName}: $classOrColumnName @{$relationName}\n";
     }
 }

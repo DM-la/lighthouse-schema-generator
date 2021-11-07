@@ -5,9 +5,9 @@ namespace DM\LighthouseSchemaGenerator\Commands;
 
 use Illuminate\Console\Command;
 use Safe\Exceptions\FilesystemException;
-use DM\LighthouseSchemaGenerator\Helpers\Utils;
 use DM\LighthouseSchemaGenerator\Helpers\FileUtils;
-use DM\LighthouseSchemaGenerator\Helpers\ModelParser;
+use DM\LighthouseSchemaGenerator\Parsers\ModelParser;
+use DM\LighthouseSchemaGenerator\Helpers\ModelsUtils;
 
 class MakeGraphqlSchemaCommand extends Command
 {
@@ -27,7 +27,7 @@ class MakeGraphqlSchemaCommand extends Command
      */
     protected $description = 'Lighthouse schema generator';
 
-    /** @var Utils */
+    /** @var ModelsUtils */
     private $utils;
 
     /** @var FileUtils */
@@ -41,7 +41,7 @@ class MakeGraphqlSchemaCommand extends Command
      *
      * @return void
      */
-    public function __construct(Utils $utils, FileUtils $fileUtils, ModelParser $modelParser)
+    public function __construct(ModelsUtils $utils, FileUtils $fileUtils, ModelParser $modelParser)
     {
         parent::__construct();
 
@@ -64,7 +64,7 @@ class MakeGraphqlSchemaCommand extends Command
             $force = $this->option('force');
 
             $models->each(function ($model) use ($schemaFolder, $force) {
-                $content = $this->modelParser->generateSchema($model);
+                $content = $this->modelParser->parse($model);
 
                 $schemaFileName = $this->fileUtils->generateFileName(class_basename($model));
                 $schemaPath = "{$schemaFolder}/{$schemaFileName}";
