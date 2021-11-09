@@ -50,7 +50,7 @@ class MakeGraphqlSchemaCommand extends Command
         $this->modelParser = $modelParser;
     }
 
-    public function handle()
+    public function handle(): void
     {
         $path = $this->option('models-path') ?: '';
         $path = $this->fileUtils->exists(app_path($path)) ? $path : false;
