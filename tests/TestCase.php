@@ -4,18 +4,13 @@ declare(strict_types=1);
 
 namespace DM\LighthouseSchemaGenerator\Tests;
 
-use Illuminate\Foundation\Application;
 use Orchestra\Testbench\TestCase as BaseTestCase;
 use DM\LighthouseSchemaGenerator\SchemaGeneratorServiceProvider;
 
 class TestCase extends BaseTestCase
 {
     /**
-     * Get package providers.
-     *
-     * @param  Application  $app
-     *
-     * @return array
+     * {@inheritDoc}
      */
     protected function getPackageProviders($app): array
     {
@@ -25,7 +20,7 @@ class TestCase extends BaseTestCase
     }
 
     /**
-     * @param Application $app
+     * {@inheritDoc}
      */
     protected function resolveApplicationConfiguration($app)
     {
