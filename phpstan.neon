@@ -1,0 +1,16 @@
+#includes:
+#    - ./vendor/nunomaduro/larastan/extension.neon
+
+parameters:
+
+    paths:
+        - src
+        - tests
+
+    # The level 9 is the highest level
+    level: max
+
+#    ignoreErrors:
+#        - '#Unsafe usage of new static#'
+
+    checkMissingIterableValueType: false
