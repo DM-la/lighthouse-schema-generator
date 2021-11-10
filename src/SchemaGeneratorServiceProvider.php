@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace DM\LighthouseSchemaGenerator;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use DM\LighthouseSchemaGenerator\Commands\MakeGraphqlSchemaCommand;
 
@@ -34,6 +35,6 @@ class SchemaGeneratorServiceProvider extends ServiceProvider
 
     private function registerDoctrineTypeMapping(): void
     {
-        \DB::getDoctrineSchemaManager()->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
+        DB::getDoctrineSchemaManager()->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
     }
 }

@@ -52,13 +52,13 @@ class MakeGraphqlSchemaCommand extends Command
 
     public function handle(): void
     {
-        $path = $this->option('models-path') ?: '';
-        $path = $this->fileUtils->exists(app_path($path)) ? $path : false;
+        $modelsPath = $this->getModelsPathFromOption();
+        $path = $this->fileUtils->exists(app_path($modelsPath)) ? $modelsPath : false;
 
         if ($path !== false) {
             $files = $this->fileUtils->getAllFiles($path);
             $models = $this->modelsUtils->getModels($files, $path);
-            $schemaFolder = pathinfo(config('lighthouse.schema.register'), PATHINFO_DIRNAME);
+            $schemaFolder = $this->getGraphqlSchemaPath();
 
             /** @var bool $force */
             $force = $this->option('force');
@@ -86,5 +86,28 @@ class MakeGraphqlSchemaCommand extends Command
         } else {
             $this->error('Directory does not exist!');
         }
+    }
+
+    /**
+     * Path for models folder, relative to app path
+     * @return string
+     */
+    protected function getModelsPathFromOption(): string
+    {
+        $modelsPathOption = $this->option('models-path');
+        return $modelsPathOption && is_string($modelsPathOption) ? $modelsPathOption : '';
+    }
+
+    protected function getGraphqlSchemaPath(): string
+    {
+        $lighthouseSchemaRegister = config('lighthouse.schema.register');
+        $schemaGraphql = $lighthouseSchemaRegister && is_string($lighthouseSchemaRegister) ?
+                        $lighthouseSchemaRegister :
+                        base_path('graphql/schema.graphql');
+
+        return pathinfo(
+            $schemaGraphql,
+            PATHINFO_DIRNAME
+        );
     }
 }
