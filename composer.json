@@ -37,5 +37,9 @@
                 "DM\\LighthouseSchemaGenerator\\SchemaGeneratorServiceProvider"
             ]
         }
+    },
+    "scripts": {
+        "stan": "phpstan analyse --memory-limit 2048M",
+        "test": "phpunit --colors=always"
     }
 }
