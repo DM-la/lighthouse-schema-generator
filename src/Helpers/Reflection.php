@@ -11,7 +11,7 @@ use ReflectionException;
 class Reflection
 {
     /**
-     * @param string|object $objectOrClass
+     * @param class-string|object $objectOrClass
      * @return ReflectionClass
      * @throws ReflectionException
      */

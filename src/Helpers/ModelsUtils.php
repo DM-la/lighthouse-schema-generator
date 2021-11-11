@@ -37,6 +37,7 @@ class ModelsUtils
 
             return $valid;
         })->map(function (string $modelNamespace) {
+            /** @var class-string $modelNamespace */
             return (new $modelNamespace);
         });
 
