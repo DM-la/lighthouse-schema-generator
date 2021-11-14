@@ -11,6 +11,7 @@ class RelationTypes
     public const MORPH_ONE = 'MorphOne';
     public const MORPH_TO = 'MorphTo';
     public const MORPH_MANY = 'MorphMany';
+    public const MORPH_TO_MANY = 'MorphToMany';
 
     /** @var string[]  */
     public const RELATION_TYPES = [
@@ -21,6 +22,7 @@ class RelationTypes
         self::MORPH_ONE,
         self::MORPH_TO,
         self::MORPH_MANY,
+        self::MORPH_TO_MANY,
     ];
 
     public const SINGLE_RELATION_TYPES = [
@@ -34,5 +36,6 @@ class RelationTypes
         self::HAS_MANY,
         self::BELONGS_TO_MANY,
         self::MORPH_MANY,
+        self::MORPH_TO_MANY,
     ];
 }
