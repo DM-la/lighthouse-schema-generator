@@ -10,8 +10,8 @@ use DM\LighthouseSchemaGenerator\SchemaGeneratorServiceProvider;
 class TestCase extends BaseTestCase
 {
     /**
-     * {@inheritDoc}
-     */
+    * {@inheritDoc}
+    */
     protected function getPackageProviders($app): array
     {
         return [
@@ -20,11 +20,30 @@ class TestCase extends BaseTestCase
     }
 
     /**
-     * {@inheritDoc}
-     */
+    * {@inheritDoc}
+    */
     protected function resolveApplicationConfiguration($app)
     {
         parent::resolveApplicationConfiguration($app);
-        $app['config']['lighthouse.schema.register'] = $app['path.config'] . '/graphql/schema.graphql';
+        $config =  $app['config'];
+        $config['lighthouse.schema.register'] = $app['path.config'] . '/graphql/schema.graphql';
+        $config['database.default'] = 'mysql';
+        $config['database.connections.mysql'] = $this->mysqlOptions();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function mysqlOptions(): array
+    {
+        return [
+            'driver' => 'mysql',
+            'database' => env('DB_DATABASE', 'lighthouse_schema_generator_db'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'connection' => env('DB_CONNECTION', 'mysql'),
+            'host' => env('DB_HOST', 'mysql'),
+            'port' => env('DB_PORT', '3306'),
+        ];
     }
 }
