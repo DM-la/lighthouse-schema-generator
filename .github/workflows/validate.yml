@@ -10,16 +10,22 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build the stack
-        run: docker-compose up --build -d
+        run: docker-compose up --build
+        
+      - name: Go to bash
+        run: docker-compose exec php bash
 
       - name: Install composer
-        run: docker-compose exec -t php composer install
+        run: composer install
 
       - name: Run tests
-        run: docker-compose exec -t php composer test
+        run: php composer test
 
       - name: Run psalm
-        run: docker-compose exec -t php ./vendor/bin/psalm
+        run: php ./vendor/bin/psalm
+        
+      - name: Exit bash
+        run: exit;
 
       - name: Stop containers
         run: docker-compose down
