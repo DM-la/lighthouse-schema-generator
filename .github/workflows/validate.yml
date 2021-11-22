@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build the stack
-        run: docker-compose up --build
+        run: docker-compose up --build -d
         
       - name: Go to bash
         run: docker-compose exec php bash
