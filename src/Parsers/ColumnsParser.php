@@ -50,33 +50,35 @@ class ColumnsParser
                 $data .= 'ID';
                 break;
             case in_array($columnType, $types['intTypes']):
-                $data .= "Int";
+                $data .= 'Int';
                 break;
             case in_array($columnType, $types['stringTypes']):
-                $data .= "String";
+                $data .= 'String';
                 break;
             case $columnType === 'datetime':
             case in_array($columnType, $types['timeTypes']):
-                $data .= "DateTime";
+                $data .= 'DateTime';
                 break;
             case $columnType === 'date':
-                $data .= "Date";
+                $data .= 'Date';
                 break;
             case $columnType === 'datetimetz':
-                $data .= "DateTimeTz";
+                $data .= 'DateTimeTz';
                 break;
             case in_array($columnType, $types['booleanTypes']):
-                $data .= "Boolean";
+                $data .= 'Boolean';
                 break;
             case in_array($columnType, $types['floatTypes']):
-                $data .= "Float";
+                $data .= 'Float';
                 break;
             case in_array($columnType, $types['jsonTypes']):
-                $data .= "Json";
+                $data .= 'Json';
                 break;
         }
 
-        if ($columnData->getNotnull()) $data .= "!";
+        if ($columnData->getNotnull()) {
+            $data .= '!';
+        }
 
         $data .= "\n";
 

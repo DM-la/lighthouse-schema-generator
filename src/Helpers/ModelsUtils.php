@@ -24,7 +24,7 @@ class ModelsUtils
     public function getModels(array $files, string $path = ''): Collection
     {
         $models = collect($files)->map(function (SplFileInfo $file) use ($path) {
-            $path = $path ?  $path . '/' . $file->getRelativePathName(): $file->getRelativePathName();
+            $path = $path ?  $path . '/' . $file->getRelativePathName() : $file->getRelativePathName();
 
             return $this->getNamespace($path);
         })->filter(function (string $class) {
@@ -38,7 +38,7 @@ class ModelsUtils
             return $valid;
         })->map(function (string $modelNamespace) {
             /** @var class-string $modelNamespace */
-            return (new $modelNamespace);
+            return (new $modelNamespace());
         });
 
         return $models->values();

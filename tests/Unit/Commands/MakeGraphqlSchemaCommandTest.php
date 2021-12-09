@@ -27,5 +27,4 @@ class MakeGraphqlSchemaCommandTest extends TestCase
 //        $this->partialMock(ModelsUtils::class, function (MockInterface $mock) {
 //            $mock->shouldReceive('getModels')->once()->andReturn(collect([]));
 //        });
-
 }

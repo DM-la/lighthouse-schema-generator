@@ -34,7 +34,7 @@ class FileUtils
      */
     public function generateFileName(string $name): string
     {
-        return strtolower( "{$name}.graphql");
+        return strtolower("{$name}.graphql");
     }
 
     /**
