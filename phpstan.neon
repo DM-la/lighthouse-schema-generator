@@ -1,5 +1,5 @@
-#includes:
-#    - ./vendor/nunomaduro/larastan/extension.neon
+includes:
+    - ./vendor/nunomaduro/larastan/extension.neon
 
 parameters:
 
@@ -7,10 +7,12 @@ parameters:
         - src
         - tests
 
-    # The level 9 is the highest level
-    level: max
+    # Fix, Internal error: get_class\(\) expects parameter 1 to be object, string given
+    excludePaths:
+        analyseAndScan:
+            - tests/TestCase.php
 
-#    ignoreErrors:
-#        - '#Unsafe usage of new static#'
+    # The level 9 is the highest level, change to max level
+    level: 6
 
     checkMissingIterableValueType: false
