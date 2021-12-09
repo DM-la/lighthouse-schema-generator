@@ -35,6 +35,9 @@ class SchemaGeneratorServiceProvider extends ServiceProvider
 
     private function registerDoctrineTypeMapping(): void
     {
-        DB::getDoctrineSchemaManager()->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
+        //TODO: Hotfix ignore phpstan error
+        if (! defined('__PHPSTAN_RUNNING__')) {
+            DB::getDoctrineSchemaManager()->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
+        }
     }
 }
