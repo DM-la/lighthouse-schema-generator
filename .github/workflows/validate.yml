@@ -15,11 +15,14 @@ jobs:
       - name: Composer install
         run: docker-compose run php composer install
 
-      - name: Run tests
-        run: docker-compose run php composer test
+      - name: Run php codesniffer
+        run: docker-compose run php ./vendor/bin/phpcs
 
       - name: Run psalm
         run: docker-compose run php ./vendor/bin/psalm
+
+      - name: Run tests
+        run: docker-compose run php composer test
 
       - name: Stop containers
         run: docker-compose down

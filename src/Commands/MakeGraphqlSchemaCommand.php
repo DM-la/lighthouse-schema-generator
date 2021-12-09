@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace DM\LighthouseSchemaGenerator\Commands;
@@ -52,7 +53,9 @@ class MakeGraphqlSchemaCommand extends Command
 
                 if (! $force && $fileUtils->exists($schemaPath)) {
                     $question = "The {$schemaFileName} file exists. Do you want to rewrite file?";
-                    if (! $this->confirm($question)) return true;
+                    if (! $this->confirm($question)) {
+                        return true;
+                    }
                 }
 
                 $content = $modelParser->parse($model);
