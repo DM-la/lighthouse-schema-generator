@@ -2,6 +2,7 @@
 
 namespace DM\LighthouseSchemaGenerator\Parsers;
 
+use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\ConnectionInterface;
 use DM\LighthouseSchemaGenerator\Helpers\SchemaUtils;
@@ -38,6 +39,7 @@ class ColumnsParser
     protected function processColumn(ConnectionInterface $connection, string $table, string $column, array $types): string
     {
         $data = '';
+        /** @var Connection $connection */
         $columnData = $connection->getDoctrineColumn($table, $column);
         $data .= "    {$column}: ";
 

@@ -2,10 +2,10 @@
 
 namespace DM\LighthouseSchemaGenerator\Helpers;
 
+use ReflectionType;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionObject;
-use ReflectionNamedType;
 use ReflectionException;
 
 class Reflection
@@ -31,9 +31,9 @@ class Reflection
 
     /**
      * @param ReflectionMethod $method
-     * @return ReflectionNamedType|null
+     * @return ReflectionType|null
      */
-    public function getReturnType(ReflectionMethod $method): ?ReflectionNamedType
+    public function getReturnType(ReflectionMethod $method): ?ReflectionType
     {
         return $method->getReturnType();
     }

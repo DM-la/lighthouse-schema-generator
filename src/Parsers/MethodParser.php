@@ -4,10 +4,12 @@ namespace DM\LighthouseSchemaGenerator\Parsers;
 
 use ReflectionMethod;
 use ReflectionException;
+use ReflectionNamedType;
 use Illuminate\Database\Eloquent\Model;
 use DM\LighthouseSchemaGenerator\Helpers\Reflection;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use DM\LighthouseSchemaGenerator\Support\DirectiveGenerator;
+use ReflectionType;
 
 class MethodParser
 {
@@ -29,7 +31,9 @@ class MethodParser
     {
         $data = '';
 
+        /** @var ReflectionNamedType $returnType */
         $returnType = $this->reflection->getReturnType($method);
+        /** @phpstan-ignore-next-line */
         if ($returnType && (! $returnType->isBuiltin()) && $method->hasReturnType()) {
             $methodName = $method->getName();
             $relation = $this->reflection->reflectionClass($returnType->getName());

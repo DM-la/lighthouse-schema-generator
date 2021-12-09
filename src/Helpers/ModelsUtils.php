@@ -53,7 +53,7 @@ class ModelsUtils
         return sprintf(
             '\%s%s',
             app()->getNamespace(),
-            strtr(substr($path, 0, strrpos($path, '.')), '/', '\\')
+            strtr(substr($path, 0, strrpos($path, '.') ?: null), '/', '\\')
         );
     }
 }
