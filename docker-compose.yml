@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  php:
+    container_name: lighthouse-schema-generator-php
+    build:
+      context: .
+      dockerfile: ./php.dockerfile
+#      args:
+#        USER: $USER
+    depends_on:
+      - mysql
+    volumes:
+      - ./:/workdir
+    tty: true
+
+  mysql:
+    image: mysql:8.0
+    tmpfs: /var/lib/mysql
+    environment:
+      MYSQL_DATABASE: lighthouse_schema_generator_db
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"

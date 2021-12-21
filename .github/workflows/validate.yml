@@ -1,0 +1,28 @@
+name: Validate
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build the stack
+        run: docker-compose up --build -d
+
+      - name: Composer install
+        run: docker-compose run php composer install
+
+      - name: Run php codesniffer
+        run: docker-compose run php ./vendor/bin/phpcs
+
+      - name: Run psalm
+        run: docker-compose run php ./vendor/bin/psalm
+
+      - name: Run tests
+        run: docker-compose run php composer test
+
+      - name: Stop containers
+        run: docker-compose down

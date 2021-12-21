@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace DM\LighthouseSchemaGenerator;
 
-use DM\LighthouseSchemaGenerator\Commands\MakeGraphqlSchemaCommand;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
+use DM\LighthouseSchemaGenerator\Commands\MakeGraphqlSchemaCommand;
 
 class SchemaGeneratorServiceProvider extends ServiceProvider
 {
@@ -16,7 +17,7 @@ class SchemaGeneratorServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->registerDoctrineTypeMapping();
     }
 
     /**
@@ -30,6 +31,14 @@ class SchemaGeneratorServiceProvider extends ServiceProvider
             $this->commands([
                 MakeGraphqlSchemaCommand::class,
             ]);
+        }
+    }
+
+    private function registerDoctrineTypeMapping(): void
+    {
+        //TODO: Hotfix ignore phpstan error
+        if (! defined('__PHPSTAN_RUNNING__')) {
+            DB::getDoctrineSchemaManager()->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
         }
     }
 }
