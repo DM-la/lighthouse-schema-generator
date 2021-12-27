@@ -1,14 +1,14 @@
 <?php
 
-namespace DM\LighthouseSchemaGenerator\Parsers;
+namespace DmLa\LighthouseSchemaGenerator\Parsers;
 
 use ReflectionMethod;
 use ReflectionException;
 use ReflectionNamedType;
 use Illuminate\Database\Eloquent\Model;
-use DM\LighthouseSchemaGenerator\Helpers\Reflection;
+use DmLa\LighthouseSchemaGenerator\Helpers\Reflection;
 use Illuminate\Database\Eloquent\Relations\Relation;
-use DM\LighthouseSchemaGenerator\Support\DirectiveGenerator;
+use DmLa\LighthouseSchemaGenerator\Support\DirectiveGenerator;
 use ReflectionType;
 
 class MethodParser

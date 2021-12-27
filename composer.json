@@ -1,6 +1,6 @@
 {
-    "name": "dm/lighthouse-schema-generator",
-    "keywords": ["laravel"],
+    "name": "dm-la/lighthouse-schema-generator",
+    "keywords": ["laravel", "lighthouse-schema-generator"],
     "license": "MIT",
     "authors": [
         {
@@ -25,17 +25,17 @@
         "squizlabs/php_codesniffer": "^3.6"
     },
     "autoload": {
-        "psr-4": { "DM\\LighthouseSchemaGenerator\\": "src/" }
+        "psr-4": { "DmLa\\LighthouseSchemaGenerator\\": "src/" }
     },
     "autoload-dev": {
         "psr-4": {
-            "DM\\LighthouseSchemaGenerator\\Tests\\": "tests"
+            "DmLa\\LighthouseSchemaGenerator\\Tests\\": "tests"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "DM\\LighthouseSchemaGenerator\\SchemaGeneratorServiceProvider"
+                "DmLa\\LighthouseSchemaGenerator\\SchemaGeneratorServiceProvider"
             ]
         }
     },

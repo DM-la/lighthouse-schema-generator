@@ -1,8 +1,8 @@
 <?php
 
-namespace DM\LighthouseSchemaGenerator\Support;
+namespace DmLa\LighthouseSchemaGenerator\Support;
 
-use DM\LighthouseSchemaGenerator\Support\Contracts\DirectiveGeneratorInterface;
+use DmLa\LighthouseSchemaGenerator\Support\Contracts\DirectiveGeneratorInterface;
 
 class SingleRelationDirectiveGenerator implements DirectiveGeneratorInterface
 {

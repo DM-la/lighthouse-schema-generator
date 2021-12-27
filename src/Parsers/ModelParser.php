@@ -1,11 +1,11 @@
 <?php
 
-namespace DM\LighthouseSchemaGenerator\Parsers;
+namespace DmLa\LighthouseSchemaGenerator\Parsers;
 
 use Exception;
 use ReflectionMethod;
 use Illuminate\Database\Eloquent\Model;
-use DM\LighthouseSchemaGenerator\Helpers\Reflection;
+use DmLa\LighthouseSchemaGenerator\Helpers\Reflection;
 
 class ModelParser
 {
