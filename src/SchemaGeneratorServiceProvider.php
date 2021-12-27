@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace DM\LighthouseSchemaGenerator;
+namespace DmLa\LighthouseSchemaGenerator;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
-use DM\LighthouseSchemaGenerator\Commands\MakeGraphqlSchemaCommand;
+use DmLa\LighthouseSchemaGenerator\Commands\MakeGraphqlSchemaCommand;
 
 class SchemaGeneratorServiceProvider extends ServiceProvider
 {

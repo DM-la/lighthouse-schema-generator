@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace DM\LighthouseSchemaGenerator\Commands;
+namespace DmLa\LighthouseSchemaGenerator\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
 use Safe\Exceptions\FilesystemException;
-use DM\LighthouseSchemaGenerator\Helpers\FileUtils;
-use DM\LighthouseSchemaGenerator\Parsers\ModelParser;
-use DM\LighthouseSchemaGenerator\Helpers\ModelsUtils;
+use DmLa\LighthouseSchemaGenerator\Helpers\FileUtils;
+use DmLa\LighthouseSchemaGenerator\Parsers\ModelParser;
+use DmLa\LighthouseSchemaGenerator\Helpers\ModelsUtils;
 
 class MakeGraphqlSchemaCommand extends Command
 {

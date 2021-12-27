@@ -1,6 +1,6 @@
 <?php
 
-namespace DM\LighthouseSchemaGenerator\Helpers;
+namespace DmLa\LighthouseSchemaGenerator\Helpers;
 
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
